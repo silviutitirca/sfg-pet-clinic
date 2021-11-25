@@ -48,8 +48,7 @@
     </build>
 
     <scm>
-        <developerConnection>scm:git:https://github.com/silviutitirca/sfg-pet-clinic.git</developerConnection>
-    <tag>HEAD</tag>
+        <developerConnection>scm:git:git@github.com:silviutitirca/sfg-pet-clinic.git</developerConnection>
   </scm>
 
 </project>
