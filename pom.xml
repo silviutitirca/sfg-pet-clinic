@@ -49,7 +49,6 @@
 
     <scm>
         <developerConnection>scm:git:https://github.com/silviutitirca/sfg-pet-clinic.git</developerConnection>
-    <tag>HEAD</tag>
   </scm>
 
 </project>
