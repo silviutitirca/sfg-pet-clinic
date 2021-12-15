@@ -23,6 +23,7 @@ import java.util.Collection;
 @Controller
 @RequestMapping("/owners/{ownerId}")
 public class PetController {
+
     private static final String VIEWS_PETS_CREATE_OR_UPDATE_FORM = "pets/createOrUpdatePetForm";
 
     private final PetService petService;
@@ -82,16 +83,33 @@ public class PetController {
     }
 
     @PostMapping("/pets/{petId}/edit")
-    public String processUpdateForm(@Valid Pet pet, BindingResult result, Owner owner, Model model) {
-        if (result.hasErrors()) {
-            pet.setOwner(owner);
-            model.addAttribute("pet", pet);
-            return VIEWS_PETS_CREATE_OR_UPDATE_FORM;
-        } else {
-            owner.getPets().add(pet);
-            petService.save(pet);
-            return "redirect:/owners/" + owner.getId();
+    public String processUpdatePetForm(@ModelAttribute("owner") Owner owner,
+                                       @Valid @ModelAttribute("pet") Pet pet,
+                                       @PathVariable String petId, BindingResult bindingResult,
+                                       Model model) {
+        // validate the input data
+        if (StringUtils.hasLength(pet.getName())) {
+            Pet foundPet = owner.getPet(pet.getName());
+            if (foundPet!=null && !foundPet.getId().equals(Long.valueOf(petId))) {
+                bindingResult.rejectValue("name", "duplicate", "already used for other pet for this owner");
+            }
         }
+        if (!StringUtils.hasLength(pet.getName())) {
+            bindingResult.rejectValue("name", "null", "name of pet cannot be empty");
+        }
+        pet.setOwner(owner);
+        if (bindingResult.hasErrors()) {
+            model.addAttribute("pet", pet);
+            return "pets/createOrUpdatePet";
+        }
+
+        Pet foundPet = petService.findById(Long.valueOf(petId));
+        foundPet.setOwner(owner);
+        foundPet.setPetType(pet.getPetType());
+        foundPet.setName(pet.getName());
+        foundPet.setBirthDate(pet.getBirthDate());
+        petService.save(foundPet);
+        return "redirect:/owners/" + owner.getId();
     }
 
 }
