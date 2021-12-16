@@ -70,8 +70,8 @@ public class PetController {
             model.put("pet", pet);
             return VIEWS_PETS_CREATE_OR_UPDATE_FORM;
         } else {
+            pet.setOwner(owner);
             petService.save(pet);
-
             return "redirect:/owners/" + owner.getId();
         }
     }
@@ -83,14 +83,13 @@ public class PetController {
     }
 
     @PostMapping("/pets/{petId}/edit")
-    public String processUpdatePetForm(@ModelAttribute("owner") Owner owner,
-                                       @Valid @ModelAttribute("pet") Pet pet,
-                                       @PathVariable String petId, BindingResult bindingResult,
-                                       Model model) {
-        // validate the input data
+    public String processUpdateForm(@ModelAttribute("owner") Owner owner,
+                                    @Valid @ModelAttribute("pet") Pet pet,
+                                    @PathVariable String petId, BindingResult bindingResult,
+                                    Model model) {
         if (StringUtils.hasLength(pet.getName())) {
             Pet foundPet = owner.getPet(pet.getName());
-            if (foundPet!=null && !foundPet.getId().equals(Long.valueOf(petId))) {
+            if (foundPet != null && !foundPet.getId().equals(Long.valueOf(petId))) {
                 bindingResult.rejectValue("name", "duplicate", "already used for other pet for this owner");
             }
         }
@@ -102,7 +101,12 @@ public class PetController {
             model.addAttribute("pet", pet);
             return "pets/createOrUpdatePet";
         }
-
+        // update the pet information in database
+        // when apply the hibernate db, data store in db in sql style,
+        // all the java model only created after apply CrudRepository to retrieve
+        // data from database; or created before apply crudRepository to store data to database
+        // Therefore, there is no need to update the pet set in owner model.
+        // Instead of it, only to maintain the relationship between pet and owner in hibernate db.
         Pet foundPet = petService.findById(Long.valueOf(petId));
         foundPet.setOwner(owner);
         foundPet.setPetType(pet.getPetType());
@@ -111,5 +115,4 @@ public class PetController {
         petService.save(foundPet);
         return "redirect:/owners/" + owner.getId();
     }
-
 }
